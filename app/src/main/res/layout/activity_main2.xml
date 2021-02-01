@@ -6,11 +6,11 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.demo.musicapp.MusicAtmosphereLamp
+    <com.demo.musicapp.MusicAtmosphereLampCopy
         android:id="@+id/musiclamp"
         android:background="#000000"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-    </com.demo.musicapp.MusicAtmosphereLamp>
+    </com.demo.musicapp.MusicAtmosphereLampCopy>
 
 </LinearLayout>

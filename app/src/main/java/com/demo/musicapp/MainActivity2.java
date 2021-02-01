@@ -16,7 +16,7 @@ import android.widget.Toast;
  * 不使用AudioTrack和Visualizer，手写的dft算法来实现频谱动画
  */
 public class MainActivity2 extends AppCompatActivity {
-    MusicAtmosphereLamp musicUI;
+    MusicAtmosphereLampCopy musicUI;
     boolean isRecording = false;//是否录放的标记
     static final int frequency = 44100;
     //CHANNEL_OUT_STEREO

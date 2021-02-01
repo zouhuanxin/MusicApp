@@ -1,10 +1,6 @@
 package com.demo.musicapp;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.ValueAnimator;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -12,39 +8,30 @@ import android.graphics.RectF;
 import android.media.audiofx.Visualizer;
 import android.util.AttributeSet;
 import android.view.View;
-import android.view.animation.LinearInterpolator;
 
 import androidx.annotation.Nullable;
 
-import java.util.Random;
-
 /**
- * 音乐气氛灯 test
+ * 音乐气氛灯
  */
-@Deprecated
-public class MusicAtmosphereLamp extends View {
+public class MusicAtmosphereLampCopy extends View {
     private Visualizer visualizer;
     private float[] model = new float[2];
     private String[] colors = {"#FFB6C1", "#DC143C", "#DB7093", "#FF1493", "#DA70D6", "#8B008B", "#9400D3", "#9370DB", "#7B68EE", "#0000FF", "#6495ED", "#1E90FF", "#00BFFF", "#5F9EA0", "#AFEEEE", "#7FFFAA", "#3CB371", "#FFD700"};
     private int sta = 0;
     private int lastIndex = 0;
-    private Bitmap bitmap;
-    private Integer[] lights = new Integer[12];
 
-    public MusicAtmosphereLamp(Context context) {
+    public MusicAtmosphereLampCopy(Context context) {
         super(context, null);
     }
 
-    public MusicAtmosphereLamp(Context context, @Nullable AttributeSet attrs) {
+    public MusicAtmosphereLampCopy(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init(context);
     }
 
     public void init(Context context) {
-        //0开 1关
-        for (int i = 0; i < 12; i++) {
-            lights[i] = 1;
-        }
+
     }
 
     public void startMusic(int id) {
@@ -94,64 +81,40 @@ public class MusicAtmosphereLamp extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (bitmap == null) {
-            bitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
-        }
-        Canvas mCanvas = new Canvas(bitmap);
         int h = getHeight() / 12;
         Paint paint = new Paint();
         if (sta == 0) {
+            //首次
             paint.setColor(Color.parseColor("#000000"));
             for (int i = 0; i < 12; i++) {
-                mCanvas.drawRect(new RectF(20, h * i + 10, getWidth() - 20, h + h * i), paint);
+                canvas.drawRect(new RectF(20, h * i + 10, getWidth() - 20, h + h * i), paint);
             }
         } else {
             int mSpectrumCount = model.length;
             for (int i = 0; i < mSpectrumCount; i++) {
                 float value = model[i];
-                if (value < 5){
-                    continue;
-                }
-                int Index = 0;
+                int max = 0;
                 if (sta == 1) {
-                    Index = getSum(value, 2, 10);
+                    max = getSum(value, 2, 10);
                 } else if (sta == 2) {
-                    Index = getSum(value, 1, 10);
+                    max = getSum(value, 40, 40);
                 }
-                for (int j = 0; j < 12; j++) {
-                    if (j < Index) {
-                        //需要开的灯
-                        if (lights[j] == 1) {
-                            lights[j] = 0;
-                            paint.setColor(Color.parseColor(colors[j]));
-                            mCanvas.drawRect(new RectF(20, h * j + 10, getWidth() - 20, h + h * j), paint);
-                        }
-                    } else {
-                        //需要关的灯
-                        if (lights[j] == 0) {
-                            lights[j] = 1;
-                            paint.setColor(Color.parseColor("#000000"));
-                            mCanvas.drawRect(new RectF(20, h * j + 10, getWidth() - 20, h + h * j), paint);
-                        }
+                if (max > lastIndex) {
+                    //本次需要显示到灯光大于上一次，则开始从上一次到位置开始增加
+                    for (int j = (12 - lastIndex); j >= max; j--) {
+                        paint.setColor(Color.parseColor(colors[j]));
+                        canvas.drawRect(new RectF(20, h * j + 10, getWidth() - 20, h + h * j), paint);
                     }
+                } else if (max < lastIndex) {
+                    //本次需要显示到灯光小于上一次，则开始从上一次到位置开始减少
+                    for (int j = getIndex(lastIndex); j < getIndex(max); j++) {
+                        paint.setColor(Color.parseColor("#000000"));
+                        canvas.drawRect(new RectF(20, h * j + 10, getWidth() - 20, h + h * j), paint);
+                    }
+                } else {
+                    //如果是等于则不执行本次操作
                 }
-//                if (Index > lastIndex) {
-//                    //本次需要显示到灯光大于上一次，则开始从上一次到位置开始增加
-//                    for (int j = (12 - lastIndex); j >= Index; j--) {
-//                        paint.setColor(Color.parseColor(colors[j]));
-//                        mCanvas.drawRect(new RectF(20, h * j + 10, getWidth() - 20, h + h * j), paint);
-//                    }
-//                } else if (Index < lastIndex) {
-//                    //本次需要显示到灯光小于上一次，则开始从上一次到位置开始减少
-//                    for (int j = getIndex(lastIndex); j < getIndex(Index); j++) {
-//                        paint.setColor(Color.parseColor("#000000"));
-//                        mCanvas.drawRect(new RectF(20, h * j + 10, getWidth() - 20, h + h * j), paint);
-//                    }
-//                } else {
-//                    //如果是等于则不执行本次操作
-//                }
-                lastIndex = Index;
-                canvas.drawBitmap(bitmap, 0, 0, paint);
+                lastIndex = max;
             }
         }
     }
@@ -194,8 +157,6 @@ public class MusicAtmosphereLamp extends View {
     private int getIndex(int value) {
         if (value >= 1 && value <= 12) {
             return (12 - value + 1);
-        } else if (value == 0) {
-            return 12;
         }
         return 0;
     }
